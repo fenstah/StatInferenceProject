@@ -1,0 +1,128 @@
+---
+title: "Simulation Exercises"
+author: "Lenny Fenster"
+date: "Wednesday, September 17, 2014"
+output: pdf_document
+---
+##Instructions
+The exponential distribution can be simulated in R with rexp(n, lambda) where lambda is the rate parameter. The mean of exponential distribution is 1/lambda and the standard deviation is also also 1/lambda. For these simulations, lambda = 0.2. I will investigate the distribution of averages of 40 exponential(0.2)s and will need a thousand simulated averages of those 40 exponentials.
+
+The properties of the distribution of the mean of 40 exponential(0.2)s will be illustrated via simulation and associated explanatory text.  I will:
+
+1. Show where the distribution is centered at and compare it to the theoretical center of the distribution.
+2. Show how variable it is and compare it to the theoretical variance of the distribution.
+3. Show that the distribution is approximately normal.
+4. Evaluate the coverage of the confidence interval for 1/lambda: 
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <mrow class="MJX-TeXAtom-ORD">
+    <mover>
+      <mi>X</mi>
+      <mo stretchy="false">&#x00AF;<!-- ¯ --></mo>
+    </mover>
+  </mrow>
+  <mo>&#x00B1;<!-- ± --></mo>
+  <mn>1.96</mn>
+  <mfrac>
+    <mi>S</mi>
+    <msqrt>
+      <mi>n</mi>
+    </msqrt>
+  </mfrac>
+</math>
+
+##Simulation 1: Center of the distribution
+The code below shows where the distribution is centered and compares it to the theoretical center of the distribution
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <mfrac>
+    <mi>1</mi>
+    <mrow>
+      <mi>lambda</mi>
+  </mfrac>
+</math>.  The plot below illustrates that the distribution centers closer to the theoretical center, 
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <mfrac>
+    <mi>1</mi>
+    <mrow>
+      <mi>lambda</mi>
+  </mfrac>
+</math> (==5), as the sample size increases.
+
+
+```{r, echo=TRUE}
+nosim<-1000
+observations<-40
+lambda<-0.2
+observationDF<-replicate(nosim, rexp(observations,lambda))
+    
+means <- cumsum(colMeans(observationDF))/(1:nosim)    
+plot(1:nosim, means, type = "l", lwd = 2, frame = FALSE, ylab = "cumulative means",  xlab = "sample size") 
+abline(h = 1/lambda)
+```
+
+
+##Simulation 2: Variance of the distribution
+The code and plot below shows where the variance is centered and compares it to the theoretical variance.  The theoretical standard deviation of exponential distribution is
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <mfrac>
+    <mi>1</mi>
+    <mrow>
+      <mi>lambda</mi>
+  </mfrac>
+</math>. Thus, the theoretical variance is 
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+<msup>
+  <mfrac>
+    <mi>1</mi>
+    <mrow>
+      <mi>lambda</mi>
+  </mfrac>
+<mn>2</mn>
+    </msup>
+</math>
+(==25). The plot below illustrates that the distribution centers closer to the theoretical center
+as the sample size increases.
+
+```{r, echo=TRUE}
+vars <- cumsum(apply(observationDF, 2, var))/(1:nosim) 
+plot(1:nosim, vars, type = "l", lwd = 2, frame = FALSE, ylab = "cumulative variance",  xlab = "sample size") 
+abline(h = (1/lambda)^2)
+```
+
+##Simulation 3: Shape of the distribution
+The code and histogram below shows how the distribution is approximately normal.  The the distribution is normalized by centering around zero. 
+
+```{r, echo=TRUE}
+cfunc <- function(x, n) (mean(x) - 1/lambda) / ((1/lambda)/(sqrt(n)))
+dat <- data.frame(
+      x = c(apply(observationDF, 2, cfunc, observations)),
+      size = factor(c(observations), rep(nosim))
+ )
+library(ggplot2)
+g <- ggplot(dat, aes(x = x)) + geom_histogram(alpha = .20, binwidth=.3, colour = "black", fill="green", aes(y = ..density..)) 
+g <- g + stat_function(fun = dnorm, size = 2)
+print(g)
+```
+
+##Simulation 4: Evaluate  the coverage of the confidence interval for 1/lambda 
+
+The 95% confidence interval is examined as
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <mrow class="MJX-TeXAtom-ORD">
+    <mover>
+      <mi>X</mi>
+      <mo stretchy="false">&#x00AF;<!-- ¯ --></mo>
+    </mover>
+  </mrow>
+  <mo>&#x00B1;<!-- ± --></mo>
+  <mn>1.96</mn>
+  <mfrac>
+    <mi>S</mi>
+    <msqrt>
+      <mi>n</mi>
+    </msqrt>
+  </mfrac>
+</math> and is calculated below:
+```{r, echo=TRUE}
+error<-mean(sqrt(vars))/sqrt(observations)
+mean(means)+c(-1,1)*1.96*error
+```
