@@ -2,7 +2,7 @@
 title: "Analyze the ToothGrowth data"
 author: "Lenny Fenster"
 date: "Friday, September 19, 2014"
-output: pdf_document
+output: word_document
 ---
 ##Instructions
 Analyze the ToothGrowth data in the R datasets package.
@@ -45,14 +45,51 @@ var(ToothGrowth$len)
 The *length* is the mesurement we are most interested in as it relates to dosages of supplements.  There seems to be a fair amount of variability in the *length* (58.51).
 
 ```{r}
+summary(subset(ToothGrowth, supp=="OJ")$len)
 var(subset(ToothGrowth, supp=="OJ")$len)
+
+summary(subset(ToothGrowth, supp=="VC")$len)
 var(subset(ToothGrowth, supp=="VC")$len)
 ```
 
 Looking at the summaries for the orange juice and vitamin C observations independently, it appears that the bulk of the variability exists in the Vitamin C observations (var = 68.33) over the orange juice observations (var = 43.63) 
 
 ##Confidence Intervals and Hypothesis Tests 
-The 
+While the exploratory data analyis and basic summary of the data point to a difference in the variance  between the the length of odontoblasts when guinea pigs are dosed with orange juice compared with doses of vitamin C, the means, medians, and maximum values for both groups are similar.  Therefore, we will test the null hypotheses that the length of the odontoblasts when guinea pigs are dosed with orange juice is statistically equivalent to the odontoblasts for when they are dosed of vitamin C. In other words:
+
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+    <msub>
+        <mi>H</mi>
+        <mi>0</mi>
+    </msub>
+    <ci> : &mu; </ci>
+    <mn mathsize='small'>0</mn>
+    <mo>=</mo>
+        <ci>  &mu; </ci>
+        <mn mathsize='small'>&alpha;</mn>
+</math>
+
+where 
+
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+    <msub>
+        <mi>&mu;</mi>
+        <mi>0</mi>
+    </msub>
+</math>
+: mean for length with orange juice doses and 
+
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+    <msub>
+        <mi>&mu;</mi>
+        <mi>&alpha;</mi>
+    </msub>
+</math>
+: mean for length with vitamin C doses  
+
+```{r}
+t.test(subset(ToothGrowth, supp=="OJ")$len - subset(ToothGrowth, supp=="VC")$len)
+```
 
 ##Conclusion
-The
+We reject the null hypotheses that the length of the odontoblasts when guinea pigs are dosed with orange juice is statistically equivalent to the odontoblasts for when they are dosed with vitamin C.  We reject it because the t-statistic, the difference in the average length between the two doses, is 3.3 standard deviations from the mean with 29 degrees of freedom (there were 30 pairs measured).  Furthermore, the 95% confidence interval which ranges from 1.41 to 5.99, does not contain the value zero (the hypotheses for which we were testing). 
